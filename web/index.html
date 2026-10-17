@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KonkaCast · 电视投屏控制台</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 5h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-6l1 3H12l-1-3H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm8.5 2.6v9.2l6.8-4.6z" fill="currentColor"/></svg>
+    </div>
+    <div>
+      <h1>KonkaCast</h1>
+      <p>局域网电视投屏控制台</p>
+    </div>
+  </div>
+
+  <div class="badges">
+    <div class="badge" id="badge-ip"><span>本机 IP</span><strong>—</strong></div>
+    <div class="badge" id="badge-ffmpeg"><span>ffmpeg</span><strong>检测中</strong></div>
+    <div class="badge" id="badge-mirror"><span>镜像</span><strong>未启动</strong></div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ 左列：设备 ============ -->
+  <aside class="col-left">
+    <section class="card">
+      <div class="card-head">
+        <h2>接收设备</h2>
+        <button class="btn btn-primary btn-sm" id="btn-scan">扫描</button>
+      </div>
+      <p class="hint">电脑与电视必须在同一局域网。康佳电视请在「设置 → 网络 → 多屏互动 / DLNA」里打开开关。</p>
+      <ul class="dev-list" id="dev-list">
+        <li class="empty">点击扫描查找电视</li>
+      </ul>
+      <div class="dev-detail" id="dev-detail" hidden></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>播放控制</h2></div>
+      <div class="transport-row">
+        <button class="btn btn-ctl" data-act="prev" title="上一个">◀◀</button>
+        <button class="btn btn-ctl" data-act="play" title="播放">▶</button>
+        <button class="btn btn-ctl" data-act="pause" title="暂停">❚❚</button>
+        <button class="btn btn-ctl" data-act="stop" title="停止">■</button>
+        <button class="btn btn-ctl" data-act="next" title="下一个">▶▶</button>
+      </div>
+      <label class="field">
+        <span>进度 <em id="pos-text">--:--</em> / <em id="dur-text">--:--</em></span>
+        <input type="range" id="seek" min="0" max="100" value="0" step="1">
+      </label>
+      <label class="field">
+        <span>电视音量 <em id="vol-text">--</em></span>
+        <input type="range" id="volume" min="0" max="100" value="50" step="1">
+      </label>
+      <div class="row-gap">
+        <button class="btn btn-sm" id="btn-mute">静音</button>
+        <span class="state-pill" id="state-pill">未连接</span>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ============ 中列：投屏 ============ -->
+  <section class="col-mid">
+
+    <section class="card">
+      <div class="card-head">
+        <h2>屏幕镜像</h2>
+        <span class="tag tag-warn">延迟约 1~4 秒</span>
+      </div>
+      <p class="hint">把整个桌面实时编码后推给电视，开会演示、看网页视频用这个。看本地高清电影建议用下方的「推送文件」，画质更好还不占电脑资源。</p>
+
+      <div class="ffmpeg-missing" id="ffmpeg-missing" hidden>
+        <p>需要 ffmpeg 才能屏幕镜像。只有「屏幕镜像」要它，推送文件/图片/网址不用。</p>
+        <button class="btn btn-primary btn-sm" id="btn-fetch-ffmpeg">一键下载便携版</button>
+        <span class="mono" id="fetch-status"></span>
+        <div class="progress" id="fetch-progress" hidden><i style="width:0%"></i></div>
+        <p class="hint" style="margin:0">自动下载慢的话，关掉控制台后双击同目录下的 <code>安装ffmpeg.bat</code> 更稳。</p>
+      </div>
+
+      <div class="mirror-grid">
+        <label class="field"><span>视频编码器</span>
+          <select id="m-encoder">
+            <option value="auto">自动（推荐）</option>
+            <option value="h264_nvenc">NVIDIA 显卡硬编 (NVENC)</option>
+            <option value="h264_qsv">Intel 核显硬编 (QSV)</option>
+            <option value="libx264">CPU 软编 (libx264)</option>
+          </select>
+        </label>
+        <label class="field"><span>帧率</span>
+          <select id="m-fps">
+            <option value="60">60 fps</option>
+            <option value="30" selected>30 fps</option>
+            <option value="24">24 fps</option>
+            <option value="15">15 fps（省带宽）</option>
+          </select>
+        </label>
+        <label class="field"><span>码率</span>
+          <select id="m-bitrate">
+            <option value="15000">15 Mbps（高画质）</option>
+            <option value="8000" selected>8 Mbps（推荐）</option>
+            <option value="4000">4 Mbps（流畅优先）</option>
+            <option value="2000">2 Mbps（低带宽）</option>
+          </select>
+        </label>
+        <label class="field"><span>系统声音</span>
+          <select id="m-audio"><option value="">不采集声音</option></select>
+        </label>
+      </div>
+
+      <div class="row-gap">
+        <button class="btn btn-primary" id="btn-mirror-start">开始镜像</button>
+        <button class="btn btn-danger" id="btn-mirror-stop" disabled>停止镜像</button>
+        <span class="mono muted" id="mirror-url"></span>
+      </div>
+      <p class="hint" id="audio-hint"></p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>推送文件</h2>
+        <span class="tag tag-good">电视原生解码·不占电脑 CPU·可拖动进度</span>
+      </div>
+      <div class="pathbar">
+        <button class="btn btn-sm" id="btn-dir-up">↑ 上级</button>
+        <input type="text" id="dir-input" placeholder="输入或粘贴文件夹路径" spellcheck="false">
+        <button class="btn btn-sm" id="btn-dir-go">前往</button>
+        <button class="btn btn-sm" id="btn-dir-home">我的文件夹</button>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <div class="dz-inner">
+          <strong>把视频 / 音乐 / 照片拖到这里</strong>
+          <span>也可以上传后立即投屏</span>
+        </div>
+      </div>
+      <ul class="file-list" id="file-list"></ul>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>推送网络地址</h2></div>
+      <div class="pathbar">
+        <input type="text" id="url-input" placeholder="粘贴视频直链 http(s)://... 或图片地址" spellcheck="false">
+        <button class="btn btn-primary" id="btn-cast-url">推送</button>
+      </div>
+      <p class="hint">电视要能自己访问这个地址才行。仅支持视频/音频/图片直链，不支持爱奇艺、腾讯视频这类客户端加密地址。</p>
+    </section>
+
+  </section>
+
+  <!-- ============ 右列：日志 ============ -->
+  <aside class="col-right">
+    <section class="card card-log">
+      <div class="card-head"><h2>运行日志</h2>
+        <button class="btn btn-sm" id="btn-log-clear">清空</button>
+      </div>
+      <ul class="log" id="log"></ul>
+    </section>
+  </aside>
+
+</main>
+
+<div class="toast-stack" id="toasts"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

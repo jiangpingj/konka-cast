@@ -1,0 +1,24 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ===== 运行时生成 =====
+uploads/
+错误日志.txt
+*.log
+*.tmp
+
+# ===== 系统 / 编辑器 =====
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ===== 可选：本地临时配置 =====
+.local/
