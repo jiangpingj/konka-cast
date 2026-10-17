@@ -128,7 +128,7 @@ python main.py --no-browser      # 不自动开浏览器（当服务跑）
 
 ## 开源许可
 
-- 主许可证 **MIT**（见 `LICENSE`），可自由使用、修改、再分发。
+- 主许可证 **GPL-3.0**（见 `LICENSE`），使用、修改、再分发须遵循 GPL-3.0 条款（含源代码开源义务）。
 - 随源码分发的 **ffmpeg**（GPL 构建）与 **UCRT/MSVC 运行时** 为第三方组件，各自遵循原许可，详见 `THIRD_PARTY.md`。
 - 源码完全自包含：clone 或解压后双击 `启动投屏.bat` 即用，**无需联网、无需装依赖**。
 
@@ -248,7 +248,7 @@ A TV may run several DLNA services at once (e.g. HappyCast + Tencent Aurora). Th
 
 ## License
 
-- Main license **MIT** (see `LICENSE`) — free to use, modify and redistribute.
+- Main license **GPL-3.0** (see `LICENSE`) — use, modification and redistribution must comply with the GPL-3.0 terms (including source-disclosure obligations).
 - The bundled **ffmpeg** (GPL build) and **UCRT/MSVC runtime** are third-party components under their own licenses; see `THIRD_PARTY.md`.
 - Fully self-contained: after clone/unzip, double-click `启动投屏.bat` — **no network, no dependency install**.
 
