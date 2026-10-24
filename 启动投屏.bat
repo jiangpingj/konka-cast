@@ -5,6 +5,8 @@ setlocal
 REM KonkaCast 电视投屏控制台 - 一键启动
 
 set "ROOT=%~dp0"
+REM 本机 ffmpeg 依赖的 UCRT 运行时目录（分号分隔，可按机器修改）
+if not defined KONKA_CAST_RUNTIME_DIRS set "KONKA_CAST_RUNTIME_DIRS=D:\ComfyUI\.ext\Library\bin"
 REM 优先用 Windows 自带的 Python Launcher（py -3），回退系统 python
 set "PY=python"
 where py >nul 2>nul && set "PY=py -3"

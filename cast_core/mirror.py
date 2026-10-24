@@ -39,8 +39,13 @@ def _runtime_dirs() -> list[str]:
     """
     # 项目自带 ffmpeg + UCRT 运行时优先（已随源码打包进 bin/，开箱即用）
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    candidates = [
-        os.path.join(here, "bin"),
+    # 用户/启动脚本可用环境变量追加已知可用的运行时目录（分号分隔），
+    # 例如本机依赖 ComfyUI 自带的运行时：KONKA_CAST_RUNTIME_DIRS=D:\ComfyUI\.ext\Library\bin
+    extra_env = os.environ.get("KONKA_CAST_RUNTIME_DIRS")
+    candidates: list[str] = [os.path.join(here, "bin")]
+    if extra_env:
+        candidates += [p for p in extra_env.split(";") if p.strip()]
+    candidates += [
         r"C:\ProgramData\Anaconda3\Library\bin",
         r"C:\ProgramData\Miniconda3\Library\bin",
     ]
